@@ -1,0 +1,20 @@
+.trim {
+    width: max-content;
+    overflow-wrap: anywhere;
+}
+
+.full-height {
+    min-height: 100vh;
+}
+
+.chat-scroll {
+    flex: 1 1 auto;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    height: 0;
+    overflow-y: scroll;
+}
+
+.chat-scroll > :first-child {
+    margin-top: auto !important;
+}
