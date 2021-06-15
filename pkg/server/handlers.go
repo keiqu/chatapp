@@ -4,6 +4,8 @@ import (
 	"html/template"
 	"net/http"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 func (s *Server) home(w http.ResponseWriter, r *http.Request) {
@@ -24,23 +26,13 @@ func (s *Server) home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) createMessage(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		s.clientError(w, http.StatusBadRequest)
-		return
-	}
+func (s *Server) createMessages(in <-chan string) {
+	for {
+		msg := <-in
 
-	msg := r.PostForm.Get("message")
-	if msg == "" {
-		s.clientError(w, http.StatusBadRequest)
-		return
+		_, err := s.Messages.Insert(msg, time.Now().UTC())
+		if err != nil {
+			log.Err(err)
+		}
 	}
-
-	_, err = s.Messages.Insert(msg, time.Now().UTC())
-	if err != nil {
-		s.serverError(w, err)
-	}
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

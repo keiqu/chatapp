@@ -44,7 +44,7 @@ func (m *MessageModel) Get(id int) (models.Message, error) {
 func (m *MessageModel) Latest(n int) ([]models.Message, error) {
 	stmt := `SELECT id, text, created
 	FROM messages
-	ORDER BY created
+	ORDER BY created DESC
  	LIMIT $1;`
 
 	rows, err := m.DB.Query(stmt, n)
