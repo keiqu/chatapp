@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/lazy-void/chatapp/pkg/models"
+	"github.com/lazy-void/chatapp/internal/models"
 )
 
 type MessageModel struct {

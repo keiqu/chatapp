@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/lazy-void/chatapp/pkg/models"
+	"github.com/lazy-void/chatapp/internal/models"
 )
 
 type Message struct {
@@ -23,7 +23,7 @@ type Update struct {
 	Messages []Message `json:"messages"`
 }
 
-type MessagesModel interface {
+type MessageInterface interface {
 	Insert(string, time.Time) (int, error)
 	Get(n, offset int) ([]models.Message, error)
 }
@@ -43,11 +43,11 @@ type Hub struct {
 	unregister chan *Client
 
 	// Get and insert chat messages from/in the storage.
-	messages MessagesModel
+	messages MessageInterface
 }
 
 // NewHub initializes new instance of the Hub.
-func NewHub(messages MessagesModel) *Hub {
+func NewHub(messages MessageInterface) *Hub {
 	return &Hub{
 		clients:    make(map[*Client]bool),
 		broadcast:  make(chan Message),

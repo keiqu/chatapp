@@ -24,6 +24,7 @@ const (
 	messageMaxSize = 2048
 )
 
+// API actions.
 const (
 	loadMoreAction  = "loadMore"
 	broadcastAction = "broadcast"
@@ -81,7 +82,7 @@ func (c *Client) readPump() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Error().Err(err).Msg(err.Error())
+				log.Err(err).Msg("websocket connection closed unexpectedly")
 			}
 			return
 		}
@@ -159,12 +160,6 @@ func (c *Client) writePump() {
 				return
 			}
 		case resp, ok := <-c.sendResponse:
-			err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err != nil {
-				log.Err(err).Msg("error setting write deadline on websocket")
-				return
-			}
-
 			if !ok {
 				// The hub closed the channel.
 				_ = c.conn.WriteMessage(websocket.CloseMessage, nil)
