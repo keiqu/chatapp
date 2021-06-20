@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"bytes"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -21,12 +21,27 @@ const (
 	pingPeriod = (9 * pongWait) / 10
 
 	// Maximum message size allowed from peer.
-	messageMaxSize = 512
+	messageMaxSize = 2048
+)
+
+const (
+	loadMoreAction  = "loadMore"
+	broadcastAction = "broadcast"
 )
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+}
+
+type Request struct {
+	Action string `json:"action"`
+
+	// if client wants to broadcast a message
+	Message string `json:"message"`
+
+	// if client wants to load more messages
+	Offset int `json:"offset"`
 }
 
 type Client struct {
@@ -36,22 +51,22 @@ type Client struct {
 	conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan []byte
+	sendMessage chan Message
+
+	// Channel of outbound responses to requests
+	sendResponse chan Response
 }
 
-// readPump pumps messages from the websocket connection to the hub.
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
-		if err := c.conn.Close(); err != nil {
-			log.Err(err)
-		}
+		c.conn.Close()
 	}()
 
 	c.conn.SetReadLimit(messageMaxSize)
 	err := c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("error while setting read deadline on websocket connection")
 		return
 	}
 	c.conn.SetPongHandler(func(string) error {
@@ -66,12 +81,33 @@ func (c *Client) readPump() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Err(err)
+				log.Error().Err(err).Msg(err.Error())
 			}
 			return
 		}
 
-		c.hub.broadcast <- bytes.TrimSpace(message)
+		var req Request
+		err = json.Unmarshal(message, &req)
+		if err != nil {
+			log.Err(err).Msg("error unmarshalling client request")
+			return
+		}
+
+		switch req.Action {
+		case broadcastAction:
+			c.hub.broadcast <- Message{
+				Text:    req.Message,
+				Created: time.Now().UTC(),
+			}
+		case loadMoreAction:
+			messages, err := c.hub.loadMore(req.Offset)
+			if err != nil {
+				log.Err(err).Msg("error loading messages from db")
+				continue
+			}
+
+			c.sendResponse <- Response{Request: req, Messages: messages}
+		}
 	}
 }
 
@@ -80,53 +116,80 @@ func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		if err := c.conn.Close(); err != nil {
-			log.Err(err)
-		}
+		c.conn.Close()
 	}()
+
+	writeMessage := func(msg []byte) error {
+		err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+		if err != nil {
+			return err
+		}
+
+		err = c.conn.WriteMessage(websocket.TextMessage, msg)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
 
 	for {
 		select {
-		case message, ok := <-c.send:
+		case message, ok := <-c.sendMessage:
+			if !ok {
+				// The hub closed the channel.
+				_ = c.conn.WriteMessage(websocket.CloseMessage, nil)
+			}
+
+			// add all queued messages to the update
+			update := Update{Messages: []Message{message}}
+			for i := 0; i < len(c.sendMessage); i++ {
+				update.Messages = append(update.Messages, <-c.sendMessage)
+			}
+
+			jsonUpdate, err := json.Marshal(update)
+			if err != nil {
+				log.Err(err).Msg("error marshaling update to json")
+				return
+			}
+
+			err = writeMessage(jsonUpdate)
+			if err != nil {
+				log.Err(err).Msg("error sending message to websocket")
+				return
+			}
+		case resp, ok := <-c.sendResponse:
 			err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err != nil {
-				log.Err(err)
+				log.Err(err).Msg("error setting write deadline on websocket")
 				return
 			}
 
 			if !ok {
 				// The hub closed the channel.
-				err := c.conn.WriteMessage(websocket.CloseMessage, nil)
-				if err != nil {
-					log.Err(err)
-				}
-				return
+				_ = c.conn.WriteMessage(websocket.CloseMessage, nil)
 			}
 
-			w, err := c.conn.NextWriter(websocket.TextMessage)
+			jsonResp, err := json.Marshal(resp)
 			if err != nil {
-				log.Err(err)
+				log.Err(err).Msg("error marshaling response to json")
 				return
 			}
 
-			if _, err := w.Write(message); err != nil {
-				log.Err(err)
-				return
-			}
-
-			if err := w.Close(); err != nil {
-				log.Err(err)
+			err = writeMessage(jsonResp)
+			if err != nil {
+				log.Err(err).Msg("error sending message to websocket")
 				return
 			}
 		case <-ticker.C:
 			err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err != nil {
-				log.Err(err)
+				log.Err(err).Msg("error setting write deadline on websocket")
 				return
 			}
 
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				log.Err(err)
+				log.Err(err).Msg("error writing message to websocket")
 				return
 			}
 		}
@@ -137,10 +200,10 @@ func (c *Client) writePump() {
 func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("error upgrading connection to websocket")
 		return
 	}
-	c := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	c := &Client{hub: hub, conn: conn, sendMessage: make(chan Message, 256), sendResponse: make(chan Response)}
 	c.hub.register <- c
 
 	// Allow collection of memory referenced by the caller by doing all work in

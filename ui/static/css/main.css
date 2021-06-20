@@ -7,6 +7,11 @@ html, body {
     overflow-wrap: anywhere;
 }
 
+.time {
+    font-size: 0.7rem;
+    color: rgb(228, 225, 225);
+}
+
 .fill {
     min-height: 100%;
     height: 100%;
