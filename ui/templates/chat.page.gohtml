@@ -1,12 +1,16 @@
 {{template "base" .}}
 
+{{define "title"}}Chat - ChatApp{{end}}
+
 {{define "body"}}
     <div class="container-fluid d-flex flex-column p-3 fill">
         <div class="row bg-white m-0 p-2 rounded-2 chat-scroll"></div>
 
         <form class="row mt-2" autocomplete="off">
             <div class="col col-12 col-sm-10 my-1">
-                <input class="form-control" type="text" name="message" placeholder="Your message" autofocus>
+                <input id="message" class="form-control" type="text" name="message" placeholder="Your message"
+                       autofocus>
+                <label for="message" hidden>Message</label>
             </div>
             <div class="col col-12 col-sm-2 my-1">
                 <button type="submit" class="btn btn-primary form-control">Send</button>

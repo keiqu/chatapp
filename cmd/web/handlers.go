@@ -6,7 +6,7 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	ts, err := template.ParseFiles("./ui/templates/home.page.gohtml", "./ui/templates/base.layout.gohtml")
+	ts, err := template.ParseFiles("./ui/templates/chat.page.gohtml", "./ui/templates/base.layout.gohtml")
 	if err != nil {
 		app.serverError(w, err)
 		return

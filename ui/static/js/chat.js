@@ -72,7 +72,7 @@ window.onload = function () {
 
     function createMessage(text, date) {
         let messageItem = document.createElement("div");
-        messageItem.setAttribute("class", "px-3 py-1 my-1 bg-primary rounded-3 trim");
+        messageItem.setAttribute("class", "px-2 py-1 my-2 bg-primary rounded-3 trim");
 
         let textItem = document.createElement("div");
         textItem.innerHTML = text;

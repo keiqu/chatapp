@@ -1,0 +1,23 @@
+{{template "base" .}}
+
+{{define "title"}}Login - ChatApp{{end}}
+
+{{define "body"}}
+    <div class="container">
+        <h1 class="row p-5 text-secondary justify-content-center">ChatApp</h1>
+        <form class="row pt-1 justify-content-center" action="/user/login" method="POST">
+            <div class="form-group w-75">
+                <div class="form-floating mb-3">
+                    <input id="email" class="form-control" name="email" type="email" placeholder="name@example.com">
+                    <label for="email">Email address</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input id="pass" class="form-control" name="pass" type="password" placeholder="password">
+                    <label for="pass">Password</label>
+                </div>
+                <button class="btn btn-success">Login</button>
+                <a href="/user/signup" class="mx-2 btn btn-link">Signup</a>
+            </div>
+        </form>
+    </div>
+{{end}}
