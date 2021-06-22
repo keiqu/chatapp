@@ -63,3 +63,13 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 		app.serverError(w, err)
 	}
 }
+
+func (app *application) isAuthenticated(r *http.Request) bool {
+	s, err := app.sessions.Get(r, "user")
+	if err != nil {
+		return false
+	}
+
+	_, ok := s.Values["userID"]
+	return ok
+}

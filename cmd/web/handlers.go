@@ -13,13 +13,7 @@ import (
 var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	s, err := app.sessions.Get(r, "user")
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	if _, ok := s.Values["userID"]; !ok {
+	if !app.isAuthenticated(r) {
 		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 		return
 	}
@@ -28,6 +22,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
+	if app.isAuthenticated(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	app.render(w, r, "signup.page.gohtml", templateData{})
 }
 
@@ -93,6 +92,11 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
+	if app.isAuthenticated(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	app.render(w, r, "login.page.gohtml", templateData{CSRFToken: nosurf.Token(r)})
 }
 
@@ -159,4 +163,20 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
+	s, err := app.sessions.Get(r, "user")
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	delete(s.Values, "userID")
+	err = s.Save(r, w)
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }

@@ -21,6 +21,7 @@ func (app *application) routes() http.Handler {
 	r.Post("/user/signup", app.signupUser)
 	r.Get("/user/login", app.loginUserForm)
 	r.Post("/user/login", app.loginUser)
+	r.Post("/user/logout", app.logoutUser)
 
 	r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
 		chat.ServeWS(hub, w, r)
