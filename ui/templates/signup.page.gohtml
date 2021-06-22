@@ -11,7 +11,7 @@
             </svg>
             <h1 class="mt-2 text-white text-center">ChatApp</h1>
         </div>
-        <form class="row pt-1 justify-content-center" action="/user/signup" method="POST" novalidate>
+        <form class="row pt-1 justify-content-center" action="/user/signup" method="POST" novalidate autocomplete="off">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div class="form-group w-75">
                 <div class="form-floating mb-3">

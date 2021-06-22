@@ -23,7 +23,7 @@
                 <span>{{.}}</span>
             </div>
         {{end}}
-        <form class="row pt-1 justify-content-center" action="/user/login" method="POST">
+        <form class="row pt-1 justify-content-center" action="/user/login" method="POST" autocomplete="off">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div class="form-group w-75">
                 <div class="form-floating mb-3">
