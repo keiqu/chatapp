@@ -5,19 +5,34 @@
 {{define "body"}}
     <div class="container">
         <h1 class="row p-5 text-secondary justify-content-center">ChatApp</h1>
-        <form class="row pt-1 justify-content-center" action="/user/signup" method="POST">
+        <form class="row pt-1 justify-content-center" action="/user/signup" method="POST" novalidate>
             <div class="form-group w-75">
                 <div class="form-floating mb-3">
-                    <input id="username" class="form-control" name="username" type="text" placeholder="username">
+                    <input id="username" class="form-control {{if .Errors.username}}is-invalid{{end}}" name="username"
+                           type="text" placeholder="username"
+                           value="{{.Form.Get "username"}}">
                     <label for="username">Username</label>
+                    {{with .Errors.username}}
+                        <div class="invalid-feedback">{{.}}</div>
+                    {{end}}
                 </div>
                 <div class="form-floating mb-3">
-                    <input id="email" class="form-control" name="email" type="email" placeholder="name@example.com">
+                    <input id="email" class="form-control {{if .Errors.email}}is-invalid{{end}}" name="email"
+                           type="email" placeholder="name@example.com"
+                           value="{{.Form.Get "email"}}">
                     <label for="email">Email address</label>
+                    {{with .Errors.email}}
+                        <div class="invalid-feedback">{{.}}</div>
+                    {{end}}
                 </div>
                 <div class="form-floating mb-3">
-                    <input id="password" class="form-control" name="password" type="password" placeholder="password">
+                    <input id="password" class="form-control {{if .Errors.password}}is-invalid{{end}}" name="password"
+                           type="password"
+                           placeholder="password">
                     <label for="password">Password</label>
+                    {{with .Errors.password}}
+                        <div class="invalid-feedback">{{.}}</div>
+                    {{end}}
                     <span class="form-text"> Must be 8-20 characters long.</span>
                 </div>
                 <button class="btn btn-success">Signup</button>

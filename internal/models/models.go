@@ -12,3 +12,11 @@ type Message struct {
 	Text    string
 	Created time.Time
 }
+
+type User struct {
+	ID             int64
+	Username       string
+	Email          string
+	HashedPassword string
+	Created        time.Time
+}

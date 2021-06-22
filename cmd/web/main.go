@@ -5,18 +5,26 @@ import (
 	"flag"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/lazy-void/chatapp/internal/chat"
+	"github.com/lazy-void/chatapp/internal/models"
 	"github.com/lazy-void/chatapp/internal/models/postgresql"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
-type application struct{}
+type application struct {
+	messages interface {
+		Insert(string, time.Time) (int, error)
+		Get(int, int) ([]models.Message, error)
+	}
+	users interface {
+		Insert(username, email, password string) (int, error)
+		Authenticate(email, password string) (int, error)
+	}
+}
 
 func main() {
 	dsn := flag.String("dsn", "postgresql://web:pass@localhost/chatapp", "PostgreSQL connection URI.")
@@ -28,25 +36,13 @@ func main() {
 	db := initDB(*dsn)
 	defer db.Close()
 
-	app := application{}
-
-	// start chat hub
-	hub := chat.NewHub(&postgresql.MessageModel{DB: db})
-	go hub.Run()
-
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Get("/", app.home)
-	r.Get("/static/*", func(w http.ResponseWriter, r *http.Request) {
-		fs := http.StripPrefix("/static", http.FileServer(http.Dir("./ui/static")))
-		fs.ServeHTTP(w, r)
-	})
-	r.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
-		chat.ServeWS(hub, w, r)
-	})
+	app := application{
+		messages: &postgresql.MessageModel{DB: db},
+		users:    &postgresql.UserModel{DB: db},
+	}
 
 	log.Info().Msg("Starting to listen...")
-	err := http.ListenAndServe(*addr, r)
+	err := http.ListenAndServe(*addr, app.routes())
 	if err != nil {
 		log.Fatal().
 			Err(err).
