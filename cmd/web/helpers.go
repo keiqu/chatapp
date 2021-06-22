@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"runtime/debug"
 
+	"github.com/justinas/nosurf"
+
 	"github.com/rs/zerolog/log"
 )
 
@@ -22,14 +24,36 @@ func (app *application) clientError(w http.ResponseWriter, code int) {
 	http.Error(w, http.StatusText(code), code)
 }
 
-func (app *application) render(w http.ResponseWriter, name string, td templateData) {
+func (app *application) addDefaultData(w http.ResponseWriter, r *http.Request, td templateData) templateData {
+	td.CSRFToken = nosurf.Token(r)
+
+	s, _ := app.sessions.Get(r, "user")
+	successFlashes := s.Flashes("success_flash")
+	if len(successFlashes) > 0 {
+		td.SuccessFlash = successFlashes[0].(string)
+	}
+
+	errorFlashes := s.Flashes("error_flash")
+	if len(errorFlashes) > 0 {
+		td.ErrorFlash = errorFlashes[0].(string)
+	}
+
+	err := s.Save(r, w)
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	return td
+}
+
+func (app *application) render(w http.ResponseWriter, r *http.Request, name string, td templateData) {
 	ts, err := template.ParseFiles(filepath.Join("./ui/templates/", name), "./ui/templates/base.layout.gohtml")
 	if err != nil {
 		app.serverError(w, err)
 	}
 
 	buf := &bytes.Buffer{}
-	err = ts.Execute(buf, td)
+	err = ts.Execute(buf, app.addDefaultData(w, r, td))
 	if err != nil {
 		app.serverError(w, err)
 	}

@@ -5,8 +5,15 @@
 {{define "body"}}
     <div class="container form">
         <h1 class="row p-5 text-secondary justify-content-center">ChatApp</h1>
-        {{with .Alert}}
-            <div class="row alert alert-success">
+        {{with .SuccessFlash}}
+            <div class="row alert alert-success alert-dismissible">
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <span>{{.}}</span>
+            </div>
+        {{end}}
+        {{with .ErrorFlash}}
+            <div class="row alert alert-danger alert-dismissible">
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 <span>{{.}}</span>
             </div>
         {{end}}
@@ -14,12 +21,22 @@
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div class="form-group w-75">
                 <div class="form-floating mb-3">
-                    <input id="email" class="form-control" name="email" type="email" placeholder="name@example.com">
+                    <input id="email" class="form-control {{if .Errors.email}}is-invalid{{end}}" name="email"
+                           type="email" placeholder="name@example.com"
+                           value="{{.Form.Get "email"}}">
                     <label for="email">Email address</label>
+                    {{with .Errors.email}}
+                        <div class="invalid-feedback">{{.}}</div>
+                    {{end}}
                 </div>
                 <div class="form-floating mb-3">
-                    <input id="pass" class="form-control" name="pass" type="password" placeholder="password">
-                    <label for="pass">Password</label>
+                    <input id="password" class="form-control {{if .Errors.password}}is-invalid{{end}}" name="password"
+                           type="password"
+                           placeholder="password">
+                    <label for="password">Password</label>
+                    {{with .Errors.password}}
+                        <div class="invalid-feedback">{{.}}</div>
+                    {{end}}
                 </div>
                 <button class="btn btn-lg btn-success">Login</button>
                 <a href="/user/signup" class="mx-2 btn btn-link">Signup</a>

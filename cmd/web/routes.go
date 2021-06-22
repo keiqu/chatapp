@@ -14,7 +14,7 @@ func (app *application) routes() http.Handler {
 	go hub.Run()
 
 	r := chi.NewRouter()
-	r.Use(middleware.Logger, middleware.Recoverer, noSurf)
+	r.Use(middleware.Logger, middleware.Recoverer, csrfHandler)
 
 	r.Get("/", app.home)
 	r.Get("/user/signup", app.signupUserForm)

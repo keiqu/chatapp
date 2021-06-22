@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/lazy-void/chatapp/internal/models"
 	"github.com/lazy-void/chatapp/internal/models/postgresql"
 
@@ -16,6 +17,7 @@ import (
 )
 
 type application struct {
+	sessions sessions.Store
 	messages interface {
 		Insert(string, time.Time) (int, error)
 		Get(int, int) ([]models.Message, error)
@@ -29,6 +31,7 @@ type application struct {
 func main() {
 	dsn := flag.String("dsn", "postgresql://web:pass@localhost/chatapp", "PostgreSQL connection URI.")
 	addr := flag.String("addr", ":4000", "Address that will be used by the server.")
+	secret := flag.String("secret", "946IpCV9y5Vlur8YvODJEhaOY8m9J1E4", "Secret for the session manager.")
 	flag.Parse()
 
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006/01/02 15:04:05"})
@@ -37,6 +40,7 @@ func main() {
 	defer db.Close()
 
 	app := application{
+		sessions: sessions.NewCookieStore([]byte(*secret)),
 		messages: &postgresql.MessageModel{DB: db},
 		users:    &postgresql.UserModel{DB: db},
 	}
