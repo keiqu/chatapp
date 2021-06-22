@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"flag"
 	"net/http"
 	"os"
@@ -15,6 +16,12 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
+
+//go:embed static
+var staticFiles embed.FS
+
+//go:embed templates
+var htmlTemplates embed.FS
 
 type application struct {
 	sessions sessions.Store

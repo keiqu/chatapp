@@ -27,7 +27,7 @@ func (app *application) routes() http.Handler {
 		chat.ServeWS(hub, w, r)
 	})
 	r.Get("/static/*", func(w http.ResponseWriter, r *http.Request) {
-		fs := http.StripPrefix("/static", http.FileServer(http.Dir("./ui/static")))
+		fs := http.FileServer(http.FS(staticFiles))
 		fs.ServeHTTP(w, r)
 	})
 

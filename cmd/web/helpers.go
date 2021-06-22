@@ -47,15 +47,17 @@ func (app *application) addDefaultData(w http.ResponseWriter, r *http.Request, t
 }
 
 func (app *application) render(w http.ResponseWriter, r *http.Request, name string, td templateData) {
-	ts, err := template.ParseFiles(filepath.Join("./ui/templates/", name), "./ui/templates/base.layout.gohtml")
+	ts, err := template.ParseFS(htmlTemplates, filepath.Join("templates", name), "templates/base.layout.gohtml")
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
 
 	buf := &bytes.Buffer{}
 	err = ts.Execute(buf, app.addDefaultData(w, r, td))
 	if err != nil {
 		app.serverError(w, err)
+		return
 	}
 
 	_, err = w.Write(buf.Bytes())
