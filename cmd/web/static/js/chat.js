@@ -35,7 +35,7 @@ window.onload = function () {
     }
 
     chat.onscroll = () => {
-        if (!reachedHistoryEnd && chat.scrollHeight + chat.scrollTop - chat.clientHeight === 0) {
+        if (!reachedHistoryEnd && (chat.scrollHeight + chat.scrollTop - chat.clientHeight) <= 500) {
             loadMore();
         }
     }
