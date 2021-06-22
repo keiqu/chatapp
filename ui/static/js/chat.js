@@ -40,7 +40,7 @@ window.onload = function () {
         }
     }
 
-    document.querySelector("form").onsubmit = function () {
+    document.querySelector("#msg-form").onsubmit = function () {
         if (!conn) {
             return false;
         }
