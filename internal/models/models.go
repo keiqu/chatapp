@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	ErrNoRecord       = errors.New("models: no matching record found")
-	ErrDuplicateEmail = errors.New("models: duplicate email")
+	ErrNoRecord        = errors.New("models: no matching record found")
+	ErrInvalidPassword = errors.New("models: invalid password")
+	ErrDuplicateEmail  = errors.New("models: duplicate email")
 )
 
 type Message struct {
