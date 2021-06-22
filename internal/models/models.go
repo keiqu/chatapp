@@ -5,7 +5,10 @@ import (
 	"time"
 )
 
-var ErrNoRecord = errors.New("models: no matching record found")
+var (
+	ErrNoRecord       = errors.New("models: no matching record found")
+	ErrDuplicateEmail = errors.New("models: duplicate email")
+)
 
 type Message struct {
 	ID      int64

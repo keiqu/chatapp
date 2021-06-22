@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/lazy-void/chatapp/internal/models"
 )
 
 var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -52,8 +54,12 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = app.users.Insert(username, email, password)
-	if err != nil {
+	err = app.users.Insert(username, email, password)
+	if err == models.ErrDuplicateEmail {
+		errors["email"] = "Email is already in use."
+		app.render(w, "signup.page.gohtml", templateData{Errors: errors, Form: r.PostForm})
+		return
+	} else if err != nil {
 		app.serverError(w, err)
 		return
 	}
