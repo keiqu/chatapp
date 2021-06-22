@@ -3,7 +3,7 @@
 {{define "title"}}Signup - ChatApp{{end}}
 
 {{define "body"}}
-    <div class="container">
+    <div class="container form">
         <h1 class="row p-5 text-secondary justify-content-center">ChatApp</h1>
         <form class="row pt-1 justify-content-center" action="/user/signup" method="POST" novalidate>
             <div class="form-group w-75">
@@ -35,7 +35,7 @@
                     {{end}}
                     <span class="form-text"> Must be 8-20 characters long.</span>
                 </div>
-                <button class="btn btn-success">Signup</button>
+                <button class="btn btn-lg btn-success">Signup</button>
             </div>
         </form>
     </div>

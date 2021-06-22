@@ -2,6 +2,18 @@ html, body {
     height: 100%;
 }
 
+body {
+    display: flex;
+    align-items: center;
+}
+
+.form {
+    width: 100%;
+    max-width: 500px;
+    padding: 15px;
+    margin: auto;
+}
+
 .trim {
     width: max-content;
     overflow-wrap: anywhere;

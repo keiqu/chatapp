@@ -3,7 +3,7 @@
 {{define "title"}}Login - ChatApp{{end}}
 
 {{define "body"}}
-    <div class="container">
+    <div class="container form">
         <h1 class="row p-5 text-secondary justify-content-center">ChatApp</h1>
         {{with .Alert}}
             <div class="row alert alert-success">
@@ -20,7 +20,7 @@
                     <input id="pass" class="form-control" name="pass" type="password" placeholder="password">
                     <label for="pass">Password</label>
                 </div>
-                <button class="btn btn-success">Login</button>
+                <button class="btn btn-lg btn-success">Login</button>
                 <a href="/user/signup" class="mx-2 btn btn-link">Signup</a>
             </div>
         </form>
