@@ -11,6 +11,7 @@
             </div>
         {{end}}
         <form class="row pt-1 justify-content-center" action="/user/login" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div class="form-group w-75">
                 <div class="form-floating mb-3">
                     <input id="email" class="form-control" name="email" type="email" placeholder="name@example.com">

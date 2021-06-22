@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/justinas/nosurf"
+
 	"github.com/lazy-void/chatapp/internal/models"
 )
 
@@ -16,7 +18,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
-	app.render(w, "signup.page.gohtml", templateData{})
+	app.render(w, "signup.page.gohtml", templateData{CSRFToken: nosurf.Token(r)})
 }
 
 func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +70,7 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
-	app.render(w, "login.page.gohtml", templateData{})
+	app.render(w, "login.page.gohtml", templateData{CSRFToken: nosurf.Token(r)})
 }
 func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "login processing")
