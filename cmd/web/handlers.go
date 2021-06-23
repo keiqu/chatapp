@@ -13,20 +13,10 @@ import (
 var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	if !app.isAuthenticated(r) {
-		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
-		return
-	}
-
 	app.render(w, r, "chat.page.gohtml", templateData{})
 }
 
 func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
-	if app.isAuthenticated(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
 	app.render(w, r, "signup.page.gohtml", templateData{})
 }
 
@@ -92,11 +82,6 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
-	if app.isAuthenticated(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
 	app.render(w, r, "login.page.gohtml", templateData{CSRFToken: nosurf.Token(r)})
 }
 

@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/gorilla/sessions"
 	"github.com/lazy-void/chatapp/internal/models"
 	"github.com/lazy-void/chatapp/internal/models/postgresql"
 
+	"github.com/gorilla/sessions"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -32,6 +32,7 @@ type application struct {
 	users interface {
 		Insert(username, email, password string) error
 		Authenticate(email, password string) (int, error)
+		Get(id int) (models.User, error)
 	}
 }
 
@@ -46,8 +47,10 @@ func main() {
 	db := initDB(*dsn)
 	defer db.Close()
 
+	cs := sessions.NewCookieStore([]byte(*secret))
+	cs.Options.SameSite = http.SameSiteLaxMode
 	app := application{
-		sessions: sessions.NewCookieStore([]byte(*secret)),
+		sessions: cs,
 		messages: &postgresql.MessageModel{DB: db},
 		users:    &postgresql.UserModel{DB: db},
 	}
