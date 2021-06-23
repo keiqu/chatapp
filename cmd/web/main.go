@@ -23,11 +23,13 @@ var staticFiles embed.FS
 //go:embed templates
 var htmlTemplates embed.FS
 
+var userSessionKey = "user-session"
+
 type application struct {
 	sessions sessions.Store
 	messages interface {
-		Insert(string, time.Time) (int, error)
-		Get(int, int) ([]models.Message, error)
+		Insert(text string, username string, created time.Time) (int, error)
+		Get(n int, offset int) ([]models.Message, error)
 	}
 	users interface {
 		Insert(username, email, password string) error

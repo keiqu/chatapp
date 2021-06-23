@@ -22,12 +22,16 @@ func (m *UserModel) Insert(username, email, password string) error {
 		return err
 	}
 
-	stmt := `INSERT INTO users (username, email, hashed_password) VALUES ($1, $2, $3) RETURNING id;`
+	stmt := `INSERT INTO users (username, email, hashed_password) VALUES ($1, $2, $3);`
 
 	_, err = m.DB.Exec(stmt, username, email, hashedPassword)
 	if pgErr, ok := err.(*pgconn.PgError); ok {
-		if pgErr.Code == pgerrcode.UniqueViolation && pgErr.ConstraintName == "users_email_key" {
-			return models.ErrDuplicateEmail
+		if pgErr.Code == pgerrcode.UniqueViolation {
+			if pgErr.ConstraintName == "users_email_key" {
+				return models.ErrDuplicateEmail
+			} else if pgErr.ConstraintName == "users_username_key" {
+				return models.ErrDuplicateUsername
+			}
 		}
 	}
 

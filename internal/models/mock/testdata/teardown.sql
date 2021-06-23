@@ -1,2 +1,2 @@
-DROP TABLE IF EXISTS test_messages;
-DROP TABLE IF EXISTS test_users;
+DROP TABLE IF EXISTS test_messages CASCADE;
+DROP TABLE IF EXISTS test_users CASCADE;

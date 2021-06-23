@@ -8,8 +8,10 @@ import (
 	"path/filepath"
 	"runtime/debug"
 
-	"github.com/justinas/nosurf"
+	"github.com/lazy-void/chatapp/internal/chat"
+	"github.com/lazy-void/chatapp/internal/models"
 
+	"github.com/justinas/nosurf"
 	"github.com/rs/zerolog/log"
 )
 
@@ -27,7 +29,7 @@ func (app *application) clientError(w http.ResponseWriter, code int) {
 func (app *application) addDefaultData(w http.ResponseWriter, r *http.Request, td templateData) templateData {
 	td.CSRFToken = nosurf.Token(r)
 
-	s, _ := app.sessions.Get(r, "user")
+	s, _ := app.sessions.Get(r, userSessionKey)
 	successFlashes := s.Flashes("success_flash")
 	if len(successFlashes) > 0 {
 		td.SuccessFlash = successFlashes[0].(string)
@@ -67,11 +69,6 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 }
 
 func (app *application) isAuthenticated(r *http.Request) bool {
-	s, err := app.sessions.Get(r, "user")
-	if err != nil {
-		return false
-	}
-
-	_, ok := s.Values["userID"]
+	_, ok := r.Context().Value(chat.ContextUserKey).(models.User)
 	return ok
 }

@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"net/http"
+
+	"github.com/lazy-void/chatapp/internal/chat"
 
 	"github.com/justinas/nosurf"
 	"github.com/lazy-void/chatapp/internal/models"
@@ -35,8 +38,22 @@ func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler
 
 func (app *application) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s, _ := app.sessions.Get(r, "user")
-		defer func() {
+		s, _ := app.sessions.Get(r, userSessionKey)
+		userID, ok := s.Values["userID"].(int)
+		if !ok {
+			delete(s.Values, "userID")
+			err := s.Save(r, w)
+			if err != nil {
+				app.serverError(w, err)
+				return
+			}
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user, err := app.users.Get(userID)
+		if err == models.ErrNoRecord {
+			delete(s.Values, "userID")
 			err := s.Save(r, w)
 			if err != nil {
 				app.serverError(w, err)
@@ -44,17 +61,13 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			}
 
 			next.ServeHTTP(w, r)
-		}()
-
-		userID, ok := s.Values["userID"].(int)
-		if !ok {
-			delete(s.Values, "userID")
+			return
+		} else if err != nil {
+			app.serverError(w, err)
 			return
 		}
 
-		_, err := app.users.Get(userID)
-		if err == models.ErrNoRecord {
-			delete(s.Values, "userID")
-		}
+		ctx := context.WithValue(r.Context(), chat.ContextUserKey, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

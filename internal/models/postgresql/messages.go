@@ -11,13 +11,13 @@ type MessageModel struct {
 	DB *sql.DB
 }
 
-func (m *MessageModel) Insert(text string, created time.Time) (int, error) {
-	stmt := `INSERT INTO messages(text, created)
-	VALUES($1, $2)
+func (m *MessageModel) Insert(text string, username string, created time.Time) (int, error) {
+	stmt := `INSERT INTO messages(text, user_id, created)
+	VALUES($1, (SELECT id FROM users WHERE username = $2), $3)
 	RETURNING id;`
 
 	var id int
-	err := m.DB.QueryRow(stmt, text, created).Scan(&id)
+	err := m.DB.QueryRow(stmt, text, username, created).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -26,8 +26,9 @@ func (m *MessageModel) Insert(text string, created time.Time) (int, error) {
 }
 
 func (m *MessageModel) Get(n, offset int) ([]models.Message, error) {
-	stmt := `SELECT id, text, created
-	FROM messages
+	stmt := `SELECT m.id, username, text, m.created
+	FROM messages m
+	INNER JOIN users u ON m.user_id = u.id
 	ORDER BY created DESC
 	OFFSET $1
  	LIMIT $2;`
@@ -41,7 +42,7 @@ func (m *MessageModel) Get(n, offset int) ([]models.Message, error) {
 	var messages []models.Message
 	for rows.Next() {
 		msg := models.Message{}
-		err := rows.Scan(&msg.ID, &msg.Text, &msg.Created)
+		err := rows.Scan(&msg.ID, &msg.Username, &msg.Text, &msg.Created)
 		if err != nil {
 			return nil, err
 		}

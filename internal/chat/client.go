@@ -5,10 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/lazy-void/chatapp/internal/models"
 
 	"github.com/gorilla/websocket"
+	"github.com/rs/zerolog/log"
 )
+
+type contextKey string
+
+var ContextUserKey = contextKey("user")
 
 const (
 	// Time allowed to write message to the peer.
@@ -47,6 +52,9 @@ type Request struct {
 
 type Client struct {
 	hub *Hub
+
+	// Information about the user
+	user models.User
 
 	// The websocket connection.
 	conn *websocket.Conn
@@ -97,8 +105,9 @@ func (c *Client) readPump() {
 		switch req.Action {
 		case broadcastAction:
 			c.hub.broadcast <- Message{
-				Text:    req.Message,
-				Created: time.Now().UTC(),
+				Text:     req.Message,
+				Username: c.user.Username,
+				Created:  time.Now().UTC(),
 			}
 		case loadMoreAction:
 			messages, err := c.hub.loadMore(req.Offset)
@@ -198,7 +207,15 @@ func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		log.Err(err).Msg("error upgrading connection to websocket")
 		return
 	}
-	c := &Client{hub: hub, conn: conn, sendMessage: make(chan Message, 256), sendResponse: make(chan Response)}
+
+	user := r.Context().Value(ContextUserKey).(models.User)
+	c := &Client{
+		hub:          hub,
+		user:         user,
+		conn:         conn,
+		sendMessage:  make(chan Message, 256),
+		sendResponse: make(chan Response),
+	}
 	c.hub.register <- c
 
 	// Allow collection of memory referenced by the caller by doing all work in

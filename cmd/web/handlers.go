@@ -66,12 +66,19 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 			Form:   r.PostForm,
 		})
 		return
+	} else if err == models.ErrDuplicateUsername {
+		errors["username"] = "Username is already taken."
+		app.render(w, r, "signup.page.gohtml", templateData{
+			Errors: errors,
+			Form:   r.PostForm,
+		})
+		return
 	} else if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	s, _ := app.sessions.Get(r, "user")
+	s, _ := app.sessions.Get(r, userSessionKey)
 	s.AddFlash("Your signup was successful. Please log in.", "success_flash")
 	err = s.Save(r, w)
 	if err != nil {
@@ -112,7 +119,7 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := app.sessions.Get(r, "user")
+	s, err := app.sessions.Get(r, userSessionKey)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -151,7 +158,7 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
-	s, err := app.sessions.Get(r, "user")
+	s, err := app.sessions.Get(r, userSessionKey)
 	if err != nil {
 		app.serverError(w, err)
 		return

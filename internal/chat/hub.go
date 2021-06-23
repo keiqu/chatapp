@@ -10,8 +10,9 @@ import (
 )
 
 type Message struct {
-	Text    string    `json:"text"`
-	Created time.Time `json:"created"`
+	Text     string    `json:"text"`
+	Username string    `json:"username"`
+	Created  time.Time `json:"created"`
 }
 
 type Response struct {
@@ -24,7 +25,7 @@ type Update struct {
 }
 
 type MessageInterface interface {
-	Insert(string, time.Time) (int, error)
+	Insert(text string, username string, created time.Time) (int, error)
 	Get(n, offset int) ([]models.Message, error)
 }
 
@@ -90,7 +91,7 @@ func (h *Hub) Run() {
 }
 
 func (h *Hub) save(m Message) error {
-	_, err := h.messages.Insert(m.Text, m.Created)
+	_, err := h.messages.Insert(m.Text, m.Username, m.Created)
 	if err != nil {
 		return err
 	}
@@ -109,7 +110,7 @@ func (h *Hub) loadMore(offset int) ([]Message, error) {
 
 	chatMessages := make([]Message, len(messages))
 	for i, m := range messages {
-		chatMessages[i] = Message{Text: m.Text, Created: m.Created}
+		chatMessages[i] = Message{Text: m.Text, Username: m.Username, Created: m.Created}
 	}
 
 	return chatMessages, nil
