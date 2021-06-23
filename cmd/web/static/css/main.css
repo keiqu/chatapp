@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
     height: 100%;
 }
 
@@ -14,14 +15,49 @@ body {
     margin: auto;
 }
 
-.trim {
-    width: max-content;
+.message,
+.client-message {
     overflow-wrap: anywhere;
+    width: max-content;
+}
+
+.message {
+    background-color: #673ab7;
+}
+
+.client-message {
+    align-self: flex-end;
+    background-color: #ea39b8;
+}
+
+.text,
+.username,
+.time,
+.client-time{
+    text-shadow: none;
+}
+
+.text {
+    color: white;
+}
+
+.username {
+    color: #00e8ff;
+}
+
+.time,
+.client-time {
+    font-size: 0.7rem;
+    margin-left: auto;
+    align-self: flex-end;
 }
 
 .time {
-    font-size: 0.7rem;
-    color: rgb(228, 225, 225);
+    color: #c1afe2;
+}
+
+.client-time {
+    color: #fde4ec;
 }
 
 .fill {

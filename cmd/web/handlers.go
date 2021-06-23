@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -11,6 +12,15 @@ import (
 )
 
 var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+type templateData struct {
+	Username     string
+	CSRFToken    string
+	Form         url.Values
+	SuccessFlash string
+	ErrorFlash   string
+	Errors       map[string]string
+}
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "chat.page.gohtml", templateData{})

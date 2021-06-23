@@ -27,6 +27,10 @@ func (app *application) clientError(w http.ResponseWriter, code int) {
 }
 
 func (app *application) addDefaultData(w http.ResponseWriter, r *http.Request, td templateData) templateData {
+	if user := app.authenticatedUser(r); user != nil {
+		td.Username = user.Username
+	}
+
 	td.CSRFToken = nosurf.Token(r)
 
 	s, _ := app.sessions.Get(r, userSessionKey)
@@ -68,7 +72,15 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	}
 }
 
+func (app *application) authenticatedUser(r *http.Request) *models.User {
+	user, ok := r.Context().Value(chat.ContextUserKey).(models.User)
+	if !ok {
+		return nil
+	}
+
+	return &user
+}
+
 func (app *application) isAuthenticated(r *http.Request) bool {
-	_, ok := r.Context().Value(chat.ContextUserKey).(models.User)
-	return ok
+	return app.authenticatedUser(r) != nil
 }

@@ -8,14 +8,18 @@
             <div class="d-flex align-items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 511.034 511.034"
                      fill="#fff">
-                    <path d="m255.517 0-221.284 127.758v255.517l221.284 127.759 221.284-127.759v-255.517zm15 151.418h135.303l-135.304 78.118v-78.118zm-30 78.118-135.304-78.118h135.304zm-14.499 26.27-68.059 39.08-67.876-117.563zm14.499 26.267v155.802l-67.557-117.01zm30-.576 67.652 39.059-67.652 117.177zm15-25.98 135.304-78.118-67.652 117.177zm-15-134.099v-78.117l135.304 78.118h-135.304zm-30 0h-135.304l135.304-78.118zm-176.284 71.132 67.711 117.275-67.711 38.88zm82.71 143.255 67.469 116.857-135.118-78.012zm217.206-.249 67.652 39.059-135.304 78.118zm15-25.981 67.652-117.177v156.235z"/>
+                    <path
+                            d="m255.517 0-221.284 127.758v255.517l221.284 127.759 221.284-127.759v-255.517zm15 151.418h135.303l-135.304 78.118v-78.118zm-30 78.118-135.304-78.118h135.304zm-14.499 26.27-68.059 39.08-67.876-117.563zm14.499 26.267v155.802l-67.557-117.01zm30-.576 67.652 39.059-67.652 117.177zm15-25.98 135.304-78.118-67.652 117.177zm-15-134.099v-78.117l135.304 78.118h-135.304zm-30 0h-135.304l135.304-78.118zm-176.284 71.132 67.711 117.275-67.711 38.88zm82.71 143.255 67.469 116.857-135.118-78.012zm217.206-.249 67.652 39.059-135.304 78.118zm15-25.981 67.652-117.177v156.235z"/>
                 </svg>
-                <h1 class="text-white ps-2 m-0">ChatApp</h1>
+                <h2 class="text-white ps-1 m-0">ChatApp</h2>
             </div>
-            <form method="POST" action="/user/logout">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                <button type="submit" class="btn btn-outline-danger">Logout</button>
-            </form>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-secondary me-3 me-sm-4">{{.Username}}</span>
+                <form method="POST" action="/user/logout">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <button type="submit" class="btn btn-outline-danger">Logout</button>
+                </form>
+            </div>
         </header>
         <div class="row bg-white m-0 p-2 rounded-2 chat-scroll"></div>
         <form id="msg-form" class="row mt-2" autocomplete="off">
@@ -25,7 +29,7 @@
                 <label for="message" hidden>Message</label>
             </div>
             <div class="col col-12 col-sm-2 my-1">
-                <button type="submit" class="btn btn-primary form-control">Send</button>
+                <button type="submit" class="btn btn-outline-primary form-control">Send</button>
             </div>
         </form>
     </div>
