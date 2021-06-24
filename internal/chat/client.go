@@ -2,6 +2,7 @@ package chat
 
 import (
 	"encoding/json"
+	"html"
 	"net/http"
 	"time"
 
@@ -105,7 +106,7 @@ func (c *Client) readPump() {
 		switch req.Action {
 		case broadcastAction:
 			c.hub.broadcast <- Message{
-				Text:     req.Message,
+				Text:     html.EscapeString(req.Message),
 				Username: c.user.Username,
 				Created:  time.Now().UTC(),
 			}
