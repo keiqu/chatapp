@@ -14,8 +14,8 @@ type MessageModel struct {
 
 // Insert adds message to the database. In case of success id of added message is returned.
 func (m *MessageModel) Insert(text string, username string, created time.Time) (int, error) {
-	stmt := `INSERT INTO messages(text, user_id, created)
-	VALUES($1, (SELECT id FROM users WHERE username = $2), $3)
+	stmt := `INSERT INTO messages(text, username, created)
+	VALUES($1, $2, $3)
 	RETURNING id;`
 
 	var id int
@@ -33,7 +33,6 @@ func (m *MessageModel) Insert(text string, username string, created time.Time) (
 func (m *MessageModel) Get(n, offset int) ([]models.Message, error) {
 	stmt := `SELECT m.id, username, text, m.created
 	FROM messages m
-	INNER JOIN users u ON m.user_id = u.id
 	ORDER BY created DESC
 	OFFSET $1
  	LIMIT $2;`

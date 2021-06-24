@@ -16,7 +16,7 @@ func csrfHandler(next http.Handler) http.Handler {
 
 func (app *application) requireNonAuthenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if app.isAuthenticated(r) {
+		if app.authenticatedUser(r) != nil {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
@@ -27,7 +27,7 @@ func (app *application) requireNonAuthenticatedUser(next http.Handler) http.Hand
 
 func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !app.isAuthenticated(r) {
+		if app.authenticatedUser(r) == nil {
 			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 			return
 		}
@@ -38,28 +38,17 @@ func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler
 
 func (app *application) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s, _ := app.sessions.Get(r, userSessionKey)
-		userID, ok := s.Values["userID"].(int)
+		s, _ := app.sessions.Get(r, sessionKey)
+		username, ok := s.Values[usernameKey].(string)
 		if !ok {
-			delete(s.Values, "userID")
-			err := s.Save(r, w)
-			if err != nil {
-				app.serverError(w, err)
-				return
-			}
+			app.deleteCookieAuthentication(w, r)
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		user, err := app.users.Get(userID)
+		user, err := app.users.Get(username)
 		if err == models.ErrNoRecord {
-			delete(s.Values, "userID")
-			err := s.Save(r, w)
-			if err != nil {
-				app.serverError(w, err)
-				return
-			}
-
+			app.deleteCookieAuthentication(w, r)
 			next.ServeHTTP(w, r)
 			return
 		} else if err != nil {

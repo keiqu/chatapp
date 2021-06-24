@@ -1,3 +1,4 @@
+// Package models provides abstractions from concrete data storage implementations.
 package models
 
 import (
@@ -5,6 +6,7 @@ import (
 	"time"
 )
 
+// Notable errors.
 var (
 	ErrNoRecord          = errors.New("models: no matching record found")
 	ErrInvalidPassword   = errors.New("models: invalid password")
@@ -12,6 +14,7 @@ var (
 	ErrDuplicateUsername = errors.New("models: duplicate username")
 )
 
+// Message represents row from the messages table.
 type Message struct {
 	ID       int64
 	Username string
@@ -19,8 +22,8 @@ type Message struct {
 	Created  time.Time
 }
 
+// User represents row from the users table.
 type User struct {
-	ID             int64
 	Username       string
 	Email          string
 	HashedPassword string

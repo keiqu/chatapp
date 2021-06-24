@@ -26,8 +26,7 @@ Database schemas:
 ```postgresql
 CREATE TABLE users
 (
-    id              serial       PRIMARY KEY,
-    username        varchar(255) UNIQUE NOT NULL,
+    username        varchar(255) PRIMARY KEY,
     email           varchar(255) UNIQUE NOT NULL,
     hashed_password char(60)     NOT NULL,
     created         timestamptz  default now() NOT NULL
@@ -35,9 +34,9 @@ CREATE TABLE users
 
 CREATE TABLE messages
 (
-    id      serial      PRIMARY KEY,
-    user_id integer     REFERENCES users (id) NOT NULL,
-    text    text        NOT NULL,
-    created timestamptz default now() NOT NULL
+    id       serial      PRIMARY KEY,
+    username integer     REFERENCES users (username) NOT NULL,
+    text     text        NOT NULL,
+    created  timestamptz default now() NOT NULL
 );
 ```

@@ -44,35 +44,35 @@ func (m *UserModel) Insert(username, email, password string) error {
 }
 
 // Authenticate checks for correctness provided pair of email and password.
-// In case of success user's id will be returned.
-func (m *UserModel) Authenticate(email, password string) (int, error) {
-	stmt := `SELECT id, hashed_password FROM users WHERE email = $1;`
+// In case of success username will be returned.
+func (m *UserModel) Authenticate(email, password string) (string, error) {
+	stmt := `SELECT username, hashed_password FROM users WHERE email = $1;`
 
-	var id int
+	var username string
 	var hashedPassword string
-	err := m.DB.QueryRow(stmt, email).Scan(&id, &hashedPassword)
+	err := m.DB.QueryRow(stmt, email).Scan(&username, &hashedPassword)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, models.ErrNoRecord
+		return "", models.ErrNoRecord
 	} else if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-		return 0, models.ErrInvalidPassword
+		return "", models.ErrInvalidPassword
 	} else if err != nil {
-		return 0, err
+		return "", err
 	}
 
-	return id, nil
+	return username, nil
 }
 
 // Get gets user with provided id from the database.
-func (m *UserModel) Get(id int) (models.User, error) {
-	stmt := `SELECT id, username, email, hashed_password, created FROM users WHERE id = $1;`
+func (m *UserModel) Get(username string) (models.User, error) {
+	stmt := `SELECT username, email, hashed_password, created FROM users WHERE username = $1;`
 
 	user := models.User{}
-	err := m.DB.QueryRow(stmt, id).Scan(&user.ID, &user.Username, &user.Email, &user.HashedPassword, &user.Created)
+	err := m.DB.QueryRow(stmt, username).Scan(&user.Username, &user.Email, &user.HashedPassword, &user.Created)
 	if errors.Is(err, sql.ErrNoRows) {
 		return models.User{}, models.ErrNoRecord
 	} else if err != nil {

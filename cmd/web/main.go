@@ -23,8 +23,6 @@ var staticFiles embed.FS
 //go:embed templates
 var htmlTemplates embed.FS
 
-var userSessionKey = "user-session"
-
 type application struct {
 	sessions sessions.Store
 	messages interface {
@@ -33,8 +31,8 @@ type application struct {
 	}
 	users interface {
 		Insert(username, email, password string) error
-		Authenticate(email, password string) (int, error)
-		Get(id int) (models.User, error)
+		Authenticate(email, password string) (string, error)
+		Get(username string) (models.User, error)
 	}
 }
 

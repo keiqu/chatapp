@@ -91,7 +91,7 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, _ := app.sessions.Get(r, userSessionKey)
+	s, _ := app.sessions.Get(r, sessionKey)
 	s.AddFlash("Your signup was successful. Please log in.", "success_flash")
 	err = s.Save(r, w)
 	if err != nil {
@@ -132,13 +132,13 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := app.sessions.Get(r, userSessionKey)
+	s, err := app.sessions.Get(r, sessionKey)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	userID, err := app.users.Authenticate(email, password)
+	username, err := app.users.Authenticate(email, password)
 	if err == models.ErrNoRecord {
 		s.AddFlash("Account with such email doesn't exist.", "error_flash")
 
@@ -160,7 +160,7 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Values["userID"] = userID
+	s.Values[usernameKey] = username
 	err = s.Save(r, w)
 	if err != nil {
 		app.serverError(w, err)
@@ -171,17 +171,6 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
-	s, err := app.sessions.Get(r, userSessionKey)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	delete(s.Values, "userID")
-	err = s.Save(r, w)
-	if err != nil {
-		app.serverError(w, err)
-	}
-
+	app.deleteCookieAuthentication(w, r)
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }

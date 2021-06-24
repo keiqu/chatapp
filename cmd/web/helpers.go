@@ -15,6 +15,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	sessionKey  = "user-session"
+	usernameKey = "username"
+)
+
 func (app *application) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err, debug.Stack())
 	log.Error().Msg(trace)
@@ -33,7 +38,7 @@ func (app *application) addDefaultData(w http.ResponseWriter, r *http.Request, t
 
 	td.CSRFToken = nosurf.Token(r)
 
-	s, _ := app.sessions.Get(r, userSessionKey)
+	s, _ := app.sessions.Get(r, sessionKey)
 	successFlashes := s.Flashes("success_flash")
 	if len(successFlashes) > 0 {
 		td.SuccessFlash = successFlashes[0].(string)
@@ -81,6 +86,12 @@ func (app *application) authenticatedUser(r *http.Request) *models.User {
 	return &user
 }
 
-func (app *application) isAuthenticated(r *http.Request) bool {
-	return app.authenticatedUser(r) != nil
+func (app *application) deleteCookieAuthentication(w http.ResponseWriter, r *http.Request) {
+	s, _ := app.sessions.Get(r, sessionKey)
+	delete(s.Values, "username")
+
+	err := s.Save(r, w)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
