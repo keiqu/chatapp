@@ -72,3 +72,11 @@ body {
     height: 0;
     overflow-y: scroll;
 }
+
+#input-field {
+    flex-grow: 4;
+}
+
+#input-button {
+    flex-grow: 1;
+}
