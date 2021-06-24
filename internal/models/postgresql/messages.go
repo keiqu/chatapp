@@ -7,10 +7,12 @@ import (
 	"github.com/lazy-void/chatapp/internal/models"
 )
 
+// MessageModel implements methods for working with messages table.
 type MessageModel struct {
 	DB *sql.DB
 }
 
+// Insert adds message to the database. In case of success id of added message is returned.
 func (m *MessageModel) Insert(text string, username string, created time.Time) (int, error) {
 	stmt := `INSERT INTO messages(text, user_id, created)
 	VALUES($1, (SELECT id FROM users WHERE username = $2), $3)
@@ -25,6 +27,9 @@ func (m *MessageModel) Insert(text string, username string, created time.Time) (
 	return id, nil
 }
 
+// Get sorts all messages in descending order of creation time,
+// skips the first few at the given offset, and returns n objects.
+// Useful for loading message history.
 func (m *MessageModel) Get(n, offset int) ([]models.Message, error) {
 	stmt := `SELECT m.id, username, text, m.created
 	FROM messages m
