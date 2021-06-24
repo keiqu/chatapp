@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -44,6 +45,8 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 
 	if strings.TrimSpace(username) == "" {
 		errors["username"] = "This field cannot be empty."
+	} else if html.EscapeString(username) != username {
+		errors["username"] = "Characters <, >, &, ' and \" are not allowed in the username."
 	}
 
 	if strings.TrimSpace(email) == "" {

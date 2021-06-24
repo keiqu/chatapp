@@ -84,7 +84,6 @@ function createMessage(text, username, date) {
     let timeItem = document.createElement("div");
     timeItem.innerHTML = new Date(date).toLocaleTimeString(undefined, {hour: "2-digit", minute: "2-digit"});
 
-    console.log(username)
     if (username !== clientUsername) {
         messageItem.setAttribute("class", "px-2 py-1 my-2 rounded-3 bg-primary message");
         timeItem.setAttribute("class", "time ps-2");
