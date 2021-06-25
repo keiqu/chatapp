@@ -1,23 +1,20 @@
 package main
 
 import (
-	"html"
+	"errors"
 	"net/http"
-	"net/url"
-	"regexp"
-	"strings"
+
+	"github.com/lazy-void/chatapp/internal/forms"
 
 	"github.com/justinas/nosurf"
 
 	"github.com/lazy-void/chatapp/internal/models"
 )
 
-var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-
 type templateData struct {
 	Username     string
 	CSRFToken    string
-	Form         url.Values
+	Form         forms.Form
 	SuccessFlash string
 	ErrorFlash   string
 	Errors       map[string]string
@@ -38,55 +35,41 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errors := make(map[string]string)
-	username := r.PostForm.Get("username")
-	password := r.PostForm.Get("password")
-	email := r.PostForm.Get("email")
+	form := forms.New(r.PostForm)
 
-	if strings.TrimSpace(username) == "" {
-		errors["username"] = "This field cannot be empty."
-	} else if html.EscapeString(username) != username {
-		errors["username"] = "Characters <, >, &, ' and \" are not allowed in the username."
-	}
+	form.Required("username")
+	form.ContainsOnlyAllowedChars("username")
+	form.MaxLength("username", 50)
 
-	if strings.TrimSpace(email) == "" {
-		errors["email"] = "This field cannot be empty."
-	} else if !EmailRX.MatchString(email) {
-		errors["email"] = "Incorrect email address."
-	}
+	form.Required("email")
+	form.MatchesPattern("email", forms.EmailRX)
 
-	if strings.TrimSpace(password) == "" {
-		errors["password"] = "This field cannot be empty."
-	} else if len(password) < 8 {
-		errors["password"] = "Password is too short."
-	} else if len(password) > 20 {
-		errors["password"] = "Password is too long."
-	}
+	form.Required("password")
+	form.MinLength("password", 8)
+	form.MaxLength("password", 20)
 
-	if len(errors) != 0 {
+	if !form.Valid() {
 		app.render(w, r, "signup.page.gohtml", templateData{
-			Errors: errors,
-			Form:   r.PostForm,
+			Form: form,
 		})
 		return
 	}
 
-	err = app.users.Insert(username, email, password)
-	if err == models.ErrDuplicateEmail {
-		errors["email"] = "Email is already in use."
+	err = app.users.Insert(form.Get("username"), form.Get("email"), form.Get("password"))
+	switch {
+	case errors.Is(err, models.ErrDuplicateEmail):
+		form.Errors["email"] = "Email is already in use."
 		app.render(w, r, "signup.page.gohtml", templateData{
-			Errors: errors,
-			Form:   r.PostForm,
+			Form: form,
 		})
 		return
-	} else if err == models.ErrDuplicateUsername {
-		errors["username"] = "Username is already taken."
+	case errors.Is(err, models.ErrDuplicateUsername):
+		form.Errors["username"] = "Username is already taken."
 		app.render(w, r, "signup.page.gohtml", templateData{
-			Errors: errors,
-			Form:   r.PostForm,
+			Form: form,
 		})
 		return
-	} else if err != nil {
+	case err != nil:
 		app.serverError(w, err)
 		return
 	}
@@ -112,21 +95,16 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errors := make(map[string]string)
-	email := r.PostForm.Get("email")
-	password := r.PostForm.Get("password")
+	form := forms.New(r.PostForm)
 
-	if strings.TrimSpace(email) == "" {
-		errors["email"] = "This field cannot be empty."
-	}
-	if strings.TrimSpace(password) == "" {
-		errors["password"] = "This field cannot be empty."
-	}
+	form.Required("email")
+	form.MatchesPattern("email", forms.EmailRX)
 
-	if len(errors) != 0 {
+	form.Required("password")
+
+	if !form.Valid() {
 		app.render(w, r, "login.page.gohtml", templateData{
-			Errors:    errors,
-			Form:      r.PostForm,
+			Form:      form,
 			CSRFToken: nosurf.Token(r),
 		})
 		return
@@ -138,24 +116,23 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username, err := app.users.Authenticate(email, password)
-	if err == models.ErrNoRecord {
+	username, err := app.users.Authenticate(form.Get("username"), form.Get("password"))
+	switch {
+	case errors.Is(err, models.ErrNoRecord):
 		s.AddFlash("Account with such email doesn't exist.", "error_flash")
 
 		app.render(w, r, "login.page.gohtml", templateData{
-			Errors: errors,
-			Form:   r.PostForm,
+			Form: form,
 		})
 		return
-	} else if err == models.ErrInvalidPassword {
+	case errors.Is(err, models.ErrInvalidPassword):
 		s.AddFlash("Incorrect password.", "error_flash")
 
 		app.render(w, r, "login.page.gohtml", templateData{
-			Errors: errors,
-			Form:   r.PostForm,
+			Form: form,
 		})
 		return
-	} else if err != nil {
+	case err != nil:
 		app.serverError(w, err)
 		return
 	}

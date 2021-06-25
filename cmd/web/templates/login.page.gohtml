@@ -23,30 +23,33 @@
                 <span>{{.}}</span>
             </div>
         {{end}}
-        <form class="row pt-1 justify-content-center" action="/user/login" method="POST" autocomplete="off">
+        <form class="row pt-1 justify-content-center" action="/user/login" method="POST" autocomplete="off" novalidate>
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-            <div class="form-group w-75">
-                <div class="form-floating mb-3">
-                    <input id="email" class="form-control {{if .Errors.email}}is-invalid{{end}}" name="email"
-                           type="email" placeholder="name@example.com"
-                           value="{{.Form.Get "email"}}">
-                    <label for="email">Email address</label>
-                    {{with .Errors.email}}
-                        <div class="invalid-feedback">{{.}}</div>
-                    {{end}}
+            {{with .Form}}
+                <div class="form-group w-75">
+                    <div class="form-floating mb-3">
+                        <input id="email" class="form-control {{if .Errors.email}}is-invalid{{end}}" name="email"
+                               type="email" placeholder="name@example.com"
+                               value="{{.Get "email"}}">
+                        <label for="email">Email address</label>
+                        {{with .Errors.email}}
+                            <div class="invalid-feedback">{{.}}</div>
+                        {{end}}
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input id="password" class="form-control {{if .Errors.password}}is-invalid{{end}}"
+                               name="password"
+                               type="password"
+                               placeholder="password">
+                        <label for="password">Password</label>
+                        {{with .Errors.password}}
+                            <div class="invalid-feedback">{{.}}</div>
+                        {{end}}
+                    </div>
+                    <button class="btn btn-lg btn-success form-control">Login</button>
+                    <a href="/user/signup" class="btn btn-link form-control">Create a new account</a>
                 </div>
-                <div class="form-floating mb-3">
-                    <input id="password" class="form-control {{if .Errors.password}}is-invalid{{end}}" name="password"
-                           type="password"
-                           placeholder="password">
-                    <label for="password">Password</label>
-                    {{with .Errors.password}}
-                        <div class="invalid-feedback">{{.}}</div>
-                    {{end}}
-                </div>
-                <button class="btn btn-lg btn-success form-control">Login</button>
-                <a href="/user/signup" class="btn btn-link form-control">Create a new account</a>
-            </div>
+            {{end}}
         </form>
     </div>
 {{end}}

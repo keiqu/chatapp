@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/lazy-void/chatapp/internal/chat"
@@ -47,7 +48,7 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		}
 
 		user, err := app.users.Get(username)
-		if err == models.ErrNoRecord {
+		if errors.Is(err, models.ErrNoRecord) {
 			app.deleteCookieAuthentication(w, r)
 			next.ServeHTTP(w, r)
 			return

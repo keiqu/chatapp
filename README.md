@@ -26,7 +26,7 @@ Database schemas:
 ```postgresql
 CREATE TABLE users
 (
-    username        varchar(255) PRIMARY KEY,
+    username        varchar(50)  PRIMARY KEY,
     email           varchar(255) UNIQUE NOT NULL,
     hashed_password char(60)     NOT NULL,
     created         timestamptz  default now() NOT NULL

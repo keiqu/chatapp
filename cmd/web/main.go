@@ -55,11 +55,10 @@ func main() {
 		users:    &postgresql.UserModel{DB: db},
 	}
 
-	log.Info().Msg("Starting to listen...")
+	log.Info().Msgf("Starting to listen on %s...", *addr)
 	err := http.ListenAndServe(*addr, app.routes())
 	if err != nil {
-		log.Fatal().
-			Err(err).
+		log.Err(err).
 			Msg("Error starting server.")
 	}
 }
