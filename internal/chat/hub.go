@@ -9,21 +9,28 @@ import (
 	"github.com/lazy-void/chatapp/internal/models"
 )
 
+// Message represents a message in the chat. Client and Hub
+// use them during communication.
 type Message struct {
 	Text     string    `json:"text"`
 	Username string    `json:"username"`
 	Created  time.Time `json:"created"`
 }
 
+// Response represents a response that Hub
+// sends on the Request of the Client.
 type Response struct {
 	Request  Request   `json:"request"`
 	Messages []Message `json:"messages"`
 }
 
+// Update contains all new messages for the Client.
 type Update struct {
 	Messages []Message `json:"messages"`
 }
 
+// MessageInterface provides methods for inserting and getting
+// messages from the storage.
 type MessageInterface interface {
 	Insert(text string, username string, created time.Time) (int, error)
 	Get(n, offset int) ([]models.Message, error)
@@ -71,9 +78,9 @@ func (h *Hub) Run() {
 				delete(h.clients, client)
 			}
 		case message := <-h.broadcast:
-			err := h.save(message)
+			_, err := h.messages.Insert(message.Text, message.Username, message.Created)
 			if err != nil {
-				log.Err(err).Msg("error while saving message to db")
+				log.Err(err).Msg("error while saving message")
 				continue
 			}
 
@@ -90,15 +97,7 @@ func (h *Hub) Run() {
 	}
 }
 
-func (h *Hub) save(m Message) error {
-	_, err := h.messages.Insert(m.Text, m.Username, m.Created)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
+// loadMore gets older messages from the storage using provided offset.
 func (h *Hub) loadMore(offset int) ([]Message, error) {
 	messages, err := h.messages.Get(100, offset)
 	if err != nil {

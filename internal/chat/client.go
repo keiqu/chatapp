@@ -14,6 +14,7 @@ import (
 
 type contextKey string
 
+// ContextUserKey is a key for getting user model from the context.
 var ContextUserKey = contextKey("user")
 
 const (
@@ -41,6 +42,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+// Request represents a request from the Client.
 type Request struct {
 	Action string `json:"action"`
 
@@ -51,6 +53,8 @@ type Request struct {
 	Offset int `json:"offset"`
 }
 
+// Client represents a client connected to the chat
+// via websocket.
 type Client struct {
 	hub *Hub
 
@@ -70,7 +74,7 @@ type Client struct {
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
-		c.conn.Close()
+		_ = c.conn.Close()
 	}()
 
 	c.conn.SetReadLimit(messageMaxSize)
@@ -127,7 +131,7 @@ func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		c.conn.Close()
+		_ = c.conn.Close()
 	}()
 
 	writeMessage := func(msg []byte) error {
