@@ -2,7 +2,11 @@ package postgresql
 
 import (
 	"database/sql"
+	"errors"
 	"time"
+
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 
 	"github.com/lazy-void/chatapp/internal/models"
 )
@@ -20,6 +24,12 @@ func (m *MessageModel) Insert(text string, username string, created time.Time) (
 
 	var id int
 	err := m.DB.QueryRow(stmt, text, username, created).Scan(&id)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == pgerrcode.ForeignKeyViolation && pgErr.ConstraintName == "messages_username_fkey" {
+			return 0, models.ErrInvalidUsername
+		}
+	}
 	if err != nil {
 		return 0, err
 	}

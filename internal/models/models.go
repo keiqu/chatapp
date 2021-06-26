@@ -9,6 +9,7 @@ import (
 // Notable errors.
 var (
 	ErrNoRecord          = errors.New("models: no matching record found")
+	ErrInvalidUsername   = errors.New("models: username doesn't exist")
 	ErrInvalidPassword   = errors.New("models: invalid password")
 	ErrDuplicateEmail    = errors.New("models: duplicate email")
 	ErrDuplicateUsername = errors.New("models: duplicate username")

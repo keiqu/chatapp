@@ -34,7 +34,7 @@ func (m *UserModel) Insert(username, email, password string) error {
 		if pgErr.Code == pgerrcode.UniqueViolation {
 			if pgErr.ConstraintName == "users_email_key" {
 				return models.ErrDuplicateEmail
-			} else if pgErr.ConstraintName == "users_username_key" {
+			} else if pgErr.ConstraintName == "users_pkey" {
 				return models.ErrDuplicateUsername
 			}
 		}

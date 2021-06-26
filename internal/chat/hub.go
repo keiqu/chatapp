@@ -2,6 +2,7 @@
 package chat
 
 import (
+	"errors"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -79,7 +80,9 @@ func (h *Hub) Run() {
 			}
 		case message := <-h.broadcast:
 			_, err := h.messages.Insert(message.Text, message.Username, message.Created)
-			if err != nil {
+			if errors.Is(err, models.ErrInvalidUsername) {
+				log.Err(err).Msg("message has invalid username attached to it")
+			} else if err != nil {
 				log.Err(err).Msg("error while saving message")
 				continue
 			}
