@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lazy-void/chatapp/internal/models"
+	"github.com/lazy-void/chatapp/models"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -1,16 +1,43 @@
-package main
+// Package server implements server logic of the application.
+package server
 
 import (
+	"embed"
 	"net/http"
+	"time"
+
+	"github.com/lazy-void/chatapp/chat"
+	"github.com/lazy-void/chatapp/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/lazy-void/chatapp/internal/chat"
+	"github.com/gorilla/sessions"
 )
 
-func (app *application) routes() http.Handler {
+//go:embed static
+var staticFiles embed.FS
+
+//go:embed templates
+var htmlTemplates embed.FS
+
+// Application implements server logic.
+type Application struct {
+	Sessions sessions.Store
+	Messages interface {
+		Insert(text string, username string, created time.Time) (int, error)
+		Get(n int, offset int) ([]models.Message, error)
+	}
+	Users interface {
+		Insert(username, email, password string) error
+		Authenticate(email, password string) (string, error)
+		Get(username string) (models.User, error)
+	}
+}
+
+// NewRouter returns initialized server router.
+func (app *Application) NewRouter() http.Handler {
 	// start chat hub
-	hub := chat.NewHub(app.messages)
+	hub := chat.NewHub(app.Messages)
 	go hub.Run()
 
 	r := chi.NewRouter()

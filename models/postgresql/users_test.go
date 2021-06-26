@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/lazy-void/chatapp/models"
 
-	"github.com/lazy-void/chatapp/internal/models"
+	"github.com/stretchr/testify/assert"
 )
 
 var testUserPassword = "qwerty123"

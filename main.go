@@ -2,39 +2,18 @@ package main
 
 import (
 	"database/sql"
-	"embed"
 	"flag"
 	"net/http"
 	"os"
-	"time"
 
-	"github.com/lazy-void/chatapp/internal/models"
-	"github.com/lazy-void/chatapp/internal/models/postgresql"
+	"github.com/lazy-void/chatapp/models/postgresql"
+	"github.com/lazy-void/chatapp/server"
 
 	"github.com/gorilla/sessions"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
-
-//go:embed static
-var staticFiles embed.FS
-
-//go:embed templates
-var htmlTemplates embed.FS
-
-type application struct {
-	sessions sessions.Store
-	messages interface {
-		Insert(text string, username string, created time.Time) (int, error)
-		Get(n int, offset int) ([]models.Message, error)
-	}
-	users interface {
-		Insert(username, email, password string) error
-		Authenticate(email, password string) (string, error)
-		Get(username string) (models.User, error)
-	}
-}
 
 func main() {
 	dsn := flag.String("dsn", "postgresql://web:pass@localhost/chatapp", "PostgreSQL connection URI.")
@@ -49,14 +28,14 @@ func main() {
 
 	cs := sessions.NewCookieStore([]byte(*secret))
 	cs.Options.SameSite = http.SameSiteLaxMode
-	app := application{
-		sessions: cs,
-		messages: &postgresql.MessageModel{DB: db},
-		users:    &postgresql.UserModel{DB: db},
+	app := server.Application{
+		Sessions: cs,
+		Messages: &postgresql.MessageModel{DB: db},
+		Users:    &postgresql.UserModel{DB: db},
 	}
 
 	log.Info().Msgf("Starting to listen on %s...", *addr)
-	err := http.ListenAndServe(*addr, app.routes())
+	err := http.ListenAndServe(*addr, app.NewRouter())
 	if err != nil {
 		log.Err(err).
 			Msg("Error starting server.")

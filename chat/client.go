@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/lazy-void/chatapp/internal/models"
+	"github.com/lazy-void/chatapp/models"
 
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog/log"

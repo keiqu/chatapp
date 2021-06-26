@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/lazy-void/chatapp/models"
 
-	"github.com/lazy-void/chatapp/internal/models"
+	"github.com/rs/zerolog/log"
 )
 
 // Message represents a message in the chat. Client and Hub

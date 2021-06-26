@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/lazy-void/chatapp/models"
+
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
-
-	"github.com/lazy-void/chatapp/internal/models"
 )
 
 // MessageModel implements methods for working with messages table.

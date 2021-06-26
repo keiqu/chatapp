@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/lazy-void/chatapp/models"
+
 	"github.com/jackc/pgerrcode"
 
 	"github.com/jackc/pgconn"
-
-	"github.com/lazy-void/chatapp/internal/models"
 
 	"golang.org/x/crypto/bcrypt"
 )

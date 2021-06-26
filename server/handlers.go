@@ -1,14 +1,13 @@
-package main
+package server
 
 import (
 	"errors"
 	"net/http"
 
-	"github.com/lazy-void/chatapp/internal/forms"
+	"github.com/lazy-void/chatapp/forms"
+	"github.com/lazy-void/chatapp/models"
 
 	"github.com/justinas/nosurf"
-
-	"github.com/lazy-void/chatapp/internal/models"
 )
 
 type templateData struct {
@@ -20,15 +19,15 @@ type templateData struct {
 	Errors       map[string]string
 }
 
-func (app *application) home(w http.ResponseWriter, r *http.Request) {
+func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "chat.page.gohtml", templateData{})
 }
 
-func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
+func (app *Application) signupUserForm(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "signup.page.gohtml", templateData{})
 }
 
-func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
+func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
@@ -55,7 +54,7 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.users.Insert(form.Get("username"), form.Get("email"), form.Get("password"))
+	err = app.Users.Insert(form.Get("username"), form.Get("email"), form.Get("password"))
 	switch {
 	case errors.Is(err, models.ErrDuplicateEmail):
 		form.Errors["email"] = "Email is already in use."
@@ -74,7 +73,7 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, _ := app.sessions.Get(r, sessionKey)
+	s, _ := app.Sessions.Get(r, sessionKey)
 	s.AddFlash("Your signup was successful. Please log in.", "success_flash")
 	err = s.Save(r, w)
 	if err != nil {
@@ -84,11 +83,11 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
-func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
+func (app *Application) loginUserForm(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "login.page.gohtml", templateData{CSRFToken: nosurf.Token(r)})
 }
 
-func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
+func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
@@ -98,9 +97,8 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 	form := forms.New(r.PostForm)
 
 	form.Required("email")
-	form.MatchesPattern("email", forms.EmailRX)
-
 	form.Required("password")
+	form.MatchesPattern("email", forms.EmailRX)
 
 	if !form.Valid() {
 		app.render(w, r, "login.page.gohtml", templateData{
@@ -110,13 +108,13 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := app.sessions.Get(r, sessionKey)
+	s, err := app.Sessions.Get(r, sessionKey)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	username, err := app.users.Authenticate(form.Get("username"), form.Get("password"))
+	username, err := app.Users.Authenticate(form.Get("email"), form.Get("password"))
 	switch {
 	case errors.Is(err, models.ErrNoRecord):
 		s.AddFlash("Account with such email doesn't exist.", "error_flash")
@@ -147,7 +145,7 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
+func (app *Application) logoutUser(w http.ResponseWriter, r *http.Request) {
 	app.deleteCookieAuthentication(w, r)
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
