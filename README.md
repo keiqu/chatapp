@@ -7,7 +7,7 @@ ChatApp is a simple chat that uses WebSockets to communicate with users and stor
 Build with:
 
 ```shell
-go build cmd/web/*.go
+go build .
 ```
 
 You can configure application via command-line options:
