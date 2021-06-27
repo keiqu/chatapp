@@ -44,7 +44,7 @@ func (app *Application) NewRouter() http.Handler {
 	r.Use(middleware.Logger, middleware.Recoverer)
 
 	r.Group(func(r chi.Router) {
-		r.Use(app.authenticate, csrfHandler)
+		r.Use(csrfHandler, app.authenticate)
 
 		r.Group(func(r chi.Router) {
 			r.Use(app.requireAuthenticatedUser)

@@ -9,6 +9,17 @@ import (
 	"unicode/utf8"
 )
 
+type errors map[string]string
+
+func (e errors) add(field, error string) {
+	// do not add error if field already has one
+	if _, ok := e[field]; ok {
+		return
+	}
+
+	e[field] = error
+}
+
 // EmailRX is regular expression for checking correctness of the email.
 var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
@@ -18,7 +29,7 @@ type Form struct {
 	url.Values
 
 	// Contains errors for each field.
-	Errors map[string]string
+	Errors errors
 }
 
 // New initializes Form.
@@ -35,7 +46,7 @@ func (f Form) Required(field string) {
 		return
 	}
 
-	f.Errors[field] = "This field cannot be empty."
+	f.Errors.add(field, "This field cannot be empty.")
 }
 
 // MinLength adds an error if the field contains
@@ -46,7 +57,7 @@ func (f Form) MinLength(field string, min int) {
 		return
 	}
 
-	f.Errors[field] = fmt.Sprintf("Provided value is too short (minimum is %d characters)", min)
+	f.Errors.add(field, fmt.Sprintf("Provided value is too short (minimum is %d characters)", min))
 }
 
 // MaxLength adds an error if the field contains
@@ -57,7 +68,7 @@ func (f Form) MaxLength(field string, max int) {
 		return
 	}
 
-	f.Errors[field] = fmt.Sprintf("Provided value is too long (maximum is %d characters)", max)
+	f.Errors.add(field, fmt.Sprintf("Provided value is too long (maximum is %d characters)", max))
 }
 
 // MatchesPattern adds an error if the field doesn't match
@@ -68,7 +79,7 @@ func (f Form) MatchesPattern(field string, pattern *regexp.Regexp) {
 		return
 	}
 
-	f.Errors[field] = "Incorrect value."
+	f.Errors.add(field, "Incorrect value.")
 }
 
 // ContainsOnlyAllowedChars adds an error if the field contains one of
@@ -79,7 +90,7 @@ func (f Form) ContainsOnlyAllowedChars(field string) {
 		return
 	}
 
-	f.Errors[field] = "Characters <, >, &, ' and \" are not allowed."
+	f.Errors.add(field, "Characters <, >, &, ' and \" are not allowed.")
 }
 
 // Valid returns true if form doesn't have

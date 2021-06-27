@@ -39,17 +39,17 @@ func (app *Application) requireAuthenticatedUser(next http.Handler) http.Handler
 
 func (app *Application) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s, _ := app.Sessions.Get(r, sessionKey)
-		username, ok := s.Values[usernameKey].(string)
+		s := app.getUserSession(r)
+		username, ok := s.Values[usernameSessionKey].(string)
 		if !ok {
-			app.deleteCookieAuthentication(w, r)
+			app.deleteAuthCookie(w, r)
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		user, err := app.Users.Get(username)
 		if errors.Is(err, models.ErrNoRecord) {
-			app.deleteCookieAuthentication(w, r)
+			app.deleteAuthCookie(w, r)
 			next.ServeHTTP(w, r)
 			return
 		} else if err != nil {

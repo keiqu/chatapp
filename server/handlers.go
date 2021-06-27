@@ -16,7 +16,6 @@ type templateData struct {
 	Form         forms.Form
 	SuccessFlash string
 	ErrorFlash   string
-	Errors       map[string]string
 }
 
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
@@ -44,8 +43,7 @@ func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 	form.MatchesPattern("email", forms.EmailRX)
 
 	form.Required("password")
-	form.MinLength("password", 8)
-	form.MaxLength("password", 20)
+	form.MinLength("password", 10)
 
 	if !form.Valid() {
 		app.render(w, r, "signup.page.gohtml", templateData{
@@ -73,7 +71,7 @@ func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, _ := app.Sessions.Get(r, sessionKey)
+	s := app.getUserSession(r)
 	s.AddFlash("Your signup was successful. Please log in.", "success_flash")
 	err = s.Save(r, w)
 	if err != nil {
@@ -84,7 +82,7 @@ func (app *Application) signupUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) loginUserForm(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, "login.page.gohtml", templateData{CSRFToken: nosurf.Token(r)})
+	app.render(w, r, "login.page.gohtml", templateData{})
 }
 
 func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +96,6 @@ func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 
 	form.Required("email")
 	form.Required("password")
-	form.MatchesPattern("email", forms.EmailRX)
 
 	if !form.Valid() {
 		app.render(w, r, "login.page.gohtml", templateData{
@@ -108,11 +105,7 @@ func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := app.Sessions.Get(r, sessionKey)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
+	s := app.getUserSession(r)
 
 	username, err := app.Users.Authenticate(form.Get("email"), form.Get("password"))
 	switch {
@@ -135,7 +128,7 @@ func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Values[usernameKey] = username
+	s.Values[usernameSessionKey] = username
 	err = s.Save(r, w)
 	if err != nil {
 		app.serverError(w, err)
@@ -146,6 +139,6 @@ func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) logoutUser(w http.ResponseWriter, r *http.Request) {
-	app.deleteCookieAuthentication(w, r)
+	app.deleteAuthCookie(w, r)
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }

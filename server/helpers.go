@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"runtime/debug"
 
+	"github.com/gorilla/sessions"
+
 	"github.com/lazy-void/chatapp/chat"
 	"github.com/lazy-void/chatapp/models"
 
@@ -16,9 +18,18 @@ import (
 )
 
 const (
-	sessionKey  = "user-session"
-	usernameKey = "username"
+	sessionKey         = "user-session"
+	usernameSessionKey = "username"
 )
+
+func (app *Application) getUserSession(r *http.Request) *sessions.Session {
+	s, err := app.Sessions.Get(r, sessionKey)
+	if err != nil {
+		log.Error().Msg("error getting user session")
+	}
+
+	return s
+}
 
 func (app *Application) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err, debug.Stack())
@@ -38,7 +49,7 @@ func (app *Application) addDefaultData(w http.ResponseWriter, r *http.Request, t
 
 	td.CSRFToken = nosurf.Token(r)
 
-	s, _ := app.Sessions.Get(r, sessionKey)
+	s := app.getUserSession(r)
 	successFlashes := s.Flashes("success_flash")
 	if len(successFlashes) > 0 {
 		td.SuccessFlash = successFlashes[0].(string)
@@ -86,8 +97,8 @@ func (app *Application) authenticatedUser(r *http.Request) *models.User {
 	return &user
 }
 
-func (app *Application) deleteCookieAuthentication(w http.ResponseWriter, r *http.Request) {
-	s, _ := app.Sessions.Get(r, sessionKey)
+func (app *Application) deleteAuthCookie(w http.ResponseWriter, r *http.Request) {
+	s := app.getUserSession(r)
 	delete(s.Values, "username")
 
 	err := s.Save(r, w)
