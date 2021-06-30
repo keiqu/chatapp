@@ -85,7 +85,7 @@ func TestMessageModel_Insert(t *testing.T) {
 	}
 }
 
-func TestMessageModel_Get(t *testing.T) {
+func TestMessageModel_Latest(t *testing.T) {
 	if testing.Short() {
 		t.Skip("postgresql: skipping integration test")
 	}
@@ -157,7 +157,7 @@ func TestMessageModel_Get(t *testing.T) {
 
 			m := MessageModel{DB: db}
 
-			messages, err := m.Get(tt.n, tt.offset)
+			messages, err := m.Latest(tt.n, tt.offset)
 
 			assert.Equal(t, tt.wantError, err)
 			assert.Equal(t, tt.wantMessages, messages)

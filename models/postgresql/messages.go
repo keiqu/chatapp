@@ -37,10 +37,10 @@ func (m *MessageModel) Insert(text string, username string, created time.Time) (
 	return id, nil
 }
 
-// Get sorts all messages in descending order of creation time,
+// Latest sorts all messages in descending order of creation time,
 // skips the first few at the given offset, and returns n objects.
 // Useful for loading message history.
-func (m *MessageModel) Get(n, offset int) ([]models.Message, error) {
+func (m *MessageModel) Latest(n, offset int) ([]models.Message, error) {
 	stmt := `SELECT m.id, username, text, m.created
 	FROM messages m
 	ORDER BY created DESC

@@ -67,7 +67,7 @@ func (m *UserModel) Authenticate(email, password string) (string, error) {
 	return username, nil
 }
 
-// Get gets user with provided id from the database.
+// Get gets user with provided the username from the database.
 func (m *UserModel) Get(username string) (models.User, error) {
 	stmt := `SELECT username, email, hashed_password, created FROM users WHERE username = $1;`
 

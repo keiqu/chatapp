@@ -34,7 +34,7 @@ type Update struct {
 // messages from the storage.
 type MessageInterface interface {
 	Insert(text string, username string, created time.Time) (int, error)
-	Get(n, offset int) ([]models.Message, error)
+	Latest(n, offset int) ([]models.Message, error)
 }
 
 // Hub maintains the set of active clients and broadcasts messages to them.
@@ -51,7 +51,7 @@ type Hub struct {
 	// Unregister requests from the clients.
 	unregister chan *Client
 
-	// Get and insert chat messages from/in the storage.
+	// Latest and insert chat messages from/in the storage.
 	messages MessageInterface
 }
 
@@ -102,7 +102,7 @@ func (h *Hub) Run() {
 
 // loadMore gets older messages from the storage using provided offset.
 func (h *Hub) loadMore(offset int) ([]Message, error) {
-	messages, err := h.messages.Get(100, offset)
+	messages, err := h.messages.Latest(100, offset)
 	if err != nil {
 		return []Message{}, err
 	}

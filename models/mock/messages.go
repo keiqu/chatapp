@@ -27,8 +27,8 @@ func (m *MessageModel) Insert(text, username string, created time.Time) (int, er
 	}
 }
 
-// Get mocks operation of getting messages from a database.
-func (m *MessageModel) Get(n, offset int) ([]models.Message, error) {
+// Latest mocks operation of getting messages from a database.
+func (m *MessageModel) Latest(n, offset int) ([]models.Message, error) {
 	switch {
 	case n >= 1 && offset == 0:
 		return []models.Message{MessageMock}, nil

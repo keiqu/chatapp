@@ -25,7 +25,7 @@ type Application struct {
 	Sessions sessions.Store
 	Messages interface {
 		Insert(text string, username string, created time.Time) (int, error)
-		Get(n int, offset int) ([]models.Message, error)
+		Latest(n int, offset int) ([]models.Message, error)
 	}
 	Users interface {
 		Insert(username, email, password string) error
